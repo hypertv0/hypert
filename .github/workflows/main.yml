@@ -18,19 +18,19 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Kütüphaneleri Yükle
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+    - name: Gerekli Kütüphaneleri Yükle
+      run: pip install -r requirements.txt
 
     - name: Kanalları Çek ve M3U8 Dosyalarını Oluştur
+      # continue-on-error: true -> main.py hata verirse bile sonraki adıma geç
+      continue-on-error: true
       run: python main.py
 
     - name: Değişiklikleri Depoya Kaydet
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        # Önce tüm değişiklikleri ekle (yeni dosyalar, silinenler, güncellenenler)
+        # Tüm değişiklikleri ekle (yeni, güncellenmiş, silinmiş dosyalar)
         git add -A
         # Değişiklik olup olmadığını kontrol et
         if git diff --staged --quiet; then
