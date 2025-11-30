@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'CloudstreamGenerator/**'
+      - 'CSPlugins/**'
 
 jobs:
   build:
@@ -13,33 +13,30 @@ jobs:
       - name: Depoyu Çek
         uses: actions/checkout@v3
 
-      - name: JDK 17 Ayarla
+      - name: JDK 17 Kur
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Android SDK Ayarla
+      - name: Android SDK Kur
         uses: android-actions/setup-android@v2
 
-      # Kerim'in reposunda gradlew kullanılıyor ama biz binary yükleyemediğimiz için
-      # Action üzerinden Gradle 7.6'yı direkt çağırıyoruz. Aynı işi yapar.
-      - name: Gradle 7.6 Kur
+      # Burada Gradle 7.6'yı manuel olarak çekip kuruyoruz, en garantisi bu.
+      - name: Gradle 7.6 Hazırla
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 7.6
 
-      - name: Derle ve JSON Oluştur
-        working-directory: ./CloudstreamGenerator
-        # CloudStream'in kendi komutu olan makePluginsJson'u çalıştırıyoruz
-        run: gradle :app:makePluginsJson --no-daemon
+      - name: Eklentiyi Derle
+        working-directory: ./CSPlugins
+        run: gradle :app:makePluginsJson --no-daemon --stacktrace
 
-      # Oluşan dosyaları 'builds' dalına (branch) atar
       - name: Release Hazırla ve Yükle
         uses: s0/git-publish-subdir-action@develop
         env:
           REPO: self
           BRANCH: builds
-          FOLDER: CloudstreamGenerator/app/build
+          FOLDER: CSPlugins/app/build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE: "Eklenti Güncellendi"
