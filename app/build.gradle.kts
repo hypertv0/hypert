@@ -1,7 +1,8 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
-    id("com.github.recloudstream.gradle") version "master-SNAPSHOT"
+    // Versiyon yazmıyoruz, ana dosyadan çekecek
+    id("com.github.recloudstream.gradle")
 }
 
 cloudstream {
