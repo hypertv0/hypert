@@ -22,8 +22,10 @@ jobs:
       - name: Android SDK Kur
         uses: android-actions/setup-android@v2
 
-      - name: Gradle İzni Ver
-        run: chmod +x plugin/gradlew || true
+      - name: Gradle 7.6 Ayarla
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.6
 
       - name: Eklentiyi Derle
         working-directory: ./plugin
