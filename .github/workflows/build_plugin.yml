@@ -4,9 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'app/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
+      - 'plugin/**'
 
 jobs:
   build:
@@ -15,29 +13,27 @@ jobs:
       - name: Depoyu Çek
         uses: actions/checkout@v3
 
-      - name: Java Kurulumu (JDK 17)
+      - name: JDK 17 Kur
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gradle 7.6 ile Eklentiyi Derle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.6
-          arguments: :app:makePluginsJson
+      - name: Android SDK Kur
+        uses: android-actions/setup-android@v2
 
-      - name: Dosyaları Hazırla
-        run: |
-          mkdir -p release
-          cp app/build/*.cs3 release/ 2>/dev/null || :
-          cp app/build/*.json release/ 2>/dev/null || :
+      - name: Gradle İzni Ver
+        run: chmod +x plugin/gradlew || true
 
-      - name: Release Oluştur (Builds Branchine At)
+      - name: Eklentiyi Derle
+        working-directory: ./plugin
+        run: gradle :app:makePluginsJson --no-daemon
+
+      - name: Release Hazırla ve Yükle
         uses: s0/git-publish-subdir-action@develop
         env:
           REPO: self
           BRANCH: builds
-          FOLDER: app/build
+          FOLDER: plugin/app/build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE: "Eklenti Güncellendi"
