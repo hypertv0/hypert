@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
-    // Versiyon yazmıyoruz, ana dosyadan çekecek
     id("com.github.recloudstream.gradle")
 }
 
