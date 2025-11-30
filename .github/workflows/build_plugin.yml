@@ -13,10 +13,11 @@ jobs:
       - name: Depoyu Çek
         uses: actions/checkout@v3
 
-      - name: JDK 11 Ayarla
+      # HATA BURADAYDI: 11 YERİNE 17 OLMALI
+      - name: JDK 17 Ayarla 
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Android SDK Ayarla
