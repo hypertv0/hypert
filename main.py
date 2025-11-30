@@ -5,14 +5,12 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # --- Renk Kodları ---
-# GitHub Actions logları renk kodlarını destekler.
 RED = "\033[91m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 
 # --- KANAL LİSTESİ ---
-# Bu, sizin kodunuzdaki listenin aynısıdır.
 KANALLAR = [
     {"dosya": "yayinzirve.m3u8", "tvg_id": "BeinSports1.tr", "kanal_adi": "Bein Sports 1 HD (VIP)"},
     {"dosya": "yayin1.m3u8", "tvg_id": "BeinSports1.tr", "kanal_adi": "Bein Sports 1 HD"},
@@ -47,10 +45,8 @@ KANALLAR = [
     {"dosya": "yayinex8.m3u8", "tvg_id": "ExxenSpor8.tr", "kanal_adi": "Exxen Spor 8 HD"},
 ]
 
-# ThreadPoolExecutor'lu site bulma fonksiyonu (daha hızlı)
 def siteyi_bul():
     print(f"\n{GREEN}[*] Site aranıyor...{RESET}")
-    
     def check_site(i):
         url = f"https://trgoals{i}.xyz/"
         try:
@@ -71,7 +67,6 @@ def siteyi_bul():
                 return result
     return None
 
-# Base URL'i bulan fonksiyon
 def find_baseurl(url):
     try:
         r = requests.get(url, timeout=10)
@@ -79,57 +74,65 @@ def find_baseurl(url):
     except requests.RequestException as e:
         print(f"{RED}[HATA] Channel sayfasına ulaşılamadı: {url} - {e}{RESET}")
         return None
-        
-    # Bu regex, 'baseurl = "..."' veya 'baseurl:"..."' gibi kalıpları arar
     match = re.search(r'baseurl\s*[:=]\s*["\']([^"\']+)["\']', r.text)
     if match:
         return match.group(1)
     return None
 
-# M3U dosyalarını oluşturan fonksiyon
 def generate_m3u_files(base_url, referer, user_agent):
     output_dir = "kanallar"
     os.makedirs(output_dir, exist_ok=True)
-    print(f"\n{GREEN}[*] '{output_dir}' klasörüne M3U8 dosyaları oluşturuluyor...{RESET}")
+    print(f"\n{GREEN}[*] '{output_dir}' klasörüne ve 'playlist.m3u' dosyasına yazılıyor...{RESET}")
+    
+    # Tüm kanallar için genel liste
+    global_playlist_content = ["#EXTM3U"]
     
     for idx, k in enumerate(KANALLAR, start=1):
         name = f"{k['kanal_adi']}"
-        # Dosya adını oluştururken kanal adını kullanmak daha mantıklı
         dosya_adi_temiz = re.sub(r'[\\/*?:"<>|]', "", name).replace(" ", "_")
         
-        # M3U8 içeriğini oluştur
-        lines = ["#EXTM3U"]
-        lines.append(f'#EXTINF:-1 tvg-id="{k["tvg_id"]}" tvg-name="{name}",{name}')
-        lines.append(f'#EXTVLCOPT:http-user-agent={user_agent}')
-        lines.append(f'#EXTVLCOPT:http-referrer={referer}')
-        lines.append(base_url + k["dosya"])
+        # Stream URL
+        stream_url = base_url + k["dosya"]
+
+        # 1. Tekil Dosya İçeriği (Mevcut mantık)
+        single_lines = ["#EXTM3U"]
+        single_lines.append(f'#EXTINF:-1 tvg-id="{k["tvg_id"]}" tvg-name="{name}",{name}')
+        single_lines.append(f'#EXTVLCOPT:http-user-agent={user_agent}')
+        single_lines.append(f'#EXTVLCOPT:http-referrer={referer}')
+        single_lines.append(stream_url)
         
-        playlist_content = "\n".join(lines)
+        with open(os.path.join(output_dir, f"{dosya_adi_temiz}.m3u8"), "w", encoding="utf-8") as f:
+            f.write("\n".join(single_lines))
+
+        # 2. Genel Playlist İçeriğine Ekle
+        global_playlist_content.append(f'#EXTINF:-1 tvg-id="{k["tvg_id"]}" tvg-name="{name}",{name}')
+        global_playlist_content.append(f'#EXTVLCOPT:http-user-agent={user_agent}')
+        global_playlist_content.append(f'#EXTVLCOPT:http-referrer={referer}')
+        global_playlist_content.append(stream_url)
         
-        # Dosyayı yaz
-        dosya_yolu = os.path.join(output_dir, f"{dosya_adi_temiz}.m3u8")
-        with open(dosya_yolu, "w", encoding="utf-8") as f:
-            f.write(playlist_content)
-        
-        print(f"  ✔ {idx:02d}. Oluşturuldu: {dosya_adi_temiz}.m3u8")
+        print(f"  ✔ {idx:02d}. Eklendi: {dosya_adi_temiz}")
+
+    # Toplu Playlist'i kök dizine yaz (Github raw url daha kısa olsun diye)
+    with open("playlist.m3u", "w", encoding="utf-8") as f:
+        f.write("\n".join(global_playlist_content))
+    
+    print(f"\n{GREEN}[OK] 'playlist.m3u' ana dizinde oluşturuldu.{RESET}")
 
 if __name__ == "__main__":
     site = siteyi_bul()
     if not site:
-        print(f"{RED}[HATA] Yayın yapan site bulunamadı. Script sonlandırılıyor.{RESET}")
-        # Hata durumunda boş bir bilgi dosyası oluşturarak commit hatasını önle
+        print(f"{RED}[HATA] Yayın yapan site bulunamadı.{RESET}")
         os.makedirs("kanallar", exist_ok=True)
         with open("kanallar/hata.txt", "w") as f:
             f.write("Aktif trgoals sitesi bulunamadı.")
-        sys.exit(0) # Hata kodu 1 yerine 0 ile çık ki Actions hata vermesin
+        sys.exit(0)
 
-    # 'yayinzirve' ID'sini kullanarak base_url'i buluyoruz
     channel_url = site.rstrip("/") + "/channel.html?id=yayinzirve"
     print(f"\n{GREEN}[*] Base URL aranıyor: {channel_url}{RESET}")
     base_url = find_baseurl(channel_url)
     
     if not base_url:
-        print(f"{RED}[HATA] Base URL bulunamadı. Script sonlandırılıyor.{RESET}")
+        print(f"{RED}[HATA] Base URL bulunamadı.{RESET}")
         os.makedirs("kanallar", exist_ok=True)
         with open("kanallar/hata.txt", "w") as f:
             f.write(f"Aktif site ({site}) bulundu ama base_url çözümlenemedi.")
@@ -137,7 +140,5 @@ if __name__ == "__main__":
         
     print(f"{GREEN}[OK] Base URL bulundu: {base_url}{RESET}")
 
-    # Bulunan base_url ile tüm kanallar için M3U8 dosyalarını oluştur
     generate_m3u_files(base_url, site, "Mozilla/5.0")
-
-    print(f"\n{GREEN}[OK] Tüm M3U8 dosyaları başarıyla oluşturuldu.{RESET}")
+    print(f"\n{GREEN}[OK] İşlem tamamlandı.{RESET}")
