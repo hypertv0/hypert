@@ -1,15 +1,18 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
-    id("com.github.recloudstream.gradle")
+    // Yukarıda classpath verdiğimiz için burada sadece ID yazıyoruz, versiyon yazmıyoruz
+    id("com.github.recloudstream.gradle") 
 }
 
 cloudstream {
+    // Eklenti Bilgileri
     name = "HyperT"
     label = "HyperT"
     description = "trgoal"
     authors = "HyperTV0"
     version = 1
+    language = "tr"
 }
 
 android {
