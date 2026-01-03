@@ -1,1 +1,1 @@
-Aktif trgoals sitesi bulunamadı.
+Aktif site (https://trgoals1493.xyz/) bulundu ama base_url çözümlenemedi.
