@@ -58,7 +58,7 @@ def siteyi_bul():
         return None
 
     with ThreadPoolExecutor(max_workers=30) as executor:
-        futures = {executor.submit(check_site, i) for i in range(1300, 1500)}
+        futures = {executor.submit(check_site, i) for i in range(1400, 1600)}
         for future in as_completed(futures):
             result = future.result()
             if result:
