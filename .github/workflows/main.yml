@@ -1,70 +1,45 @@
-name: cixis fayli Links
+name: Kanal Listesi Guncelle
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
+    - cron: '*/10 * * * *' # 10 dakikada bir çalışır
+  workflow_dispatch: # Manuel başlatma butonu
 
 jobs:
-  extract:
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Yazma izni şart
 
     steps:
-      - name: Checkout repository
+      - name: Depoyu Klonla
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Python'u Kur
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Python dependencies
+      - name: Gerekli Kütüphaneleri Yükle
         run: |
           pip install playwright requests
-
-      - name: Install Playwright browsers
-        run: |
           playwright install chromium
 
-      - name: Run goals.py (kanallar klasörü ve playlist.m3u oluşturulur)
+      - name: Kanalları Çek ve Dosyaları Oluştur
         run: python goals.py
 
-      - name: Commit and Push to target repository
+      - name: Değişiklikleri Kaydet ve Pushla
         run: |
-          # 1. Hedef depo URL'sini PAT ile yapılandır
-          TARGET_REPO_URL="https://GeceKod:${{ secrets.TARGET_REPO_TOKEN }}@github.com/GeceKod/listeler.git"
-          TARGET_DIR="target_repo"
-
-          # 2. Git yapılandırması
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions (M3U8 Pusher)"
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # 3. Hedef depoyu klonla
-          echo "Hedef depo klonlanıyor..."
-          git clone --depth 1 $TARGET_REPO_URL $TARGET_DIR
+          # Tüm yeni dosyaları ve klasörleri ekle
+          git add playlist.m3u kanallar/
           
-          # 4. Klonlanan depoya geç
-          cd $TARGET_DIR
-          
-          # 5. Dosyaları kopyala (Eski kanallar klasörünü temizleyip yenisini koyuyoruz)
-          echo "Yeni dosyalar kopyalanıyor..."
-          rm -rf kanallar/
-          cp ../playlist.m3u .
-          cp -r ../kanallar .
-          
-          # 6. Tüm değişiklikleri Git'e ekle
-          git add -A
-          
-          # 7. Eğer değişiklik varsa commit et
+          # Değişiklik varsa commit at
           if git diff --staged --quiet; then
-            echo "Hedef depoda değişiklik yok, commit atlanıyor."
+            echo "Değişiklik yok."
           else
-            git commit -m "Kanal listeleri otomatik güncellendi: $(date -u)"
-            
-            # 8. Değişiklikleri hedef depoya push et
-            echo "Değişiklikler push ediliyor..."
+            git commit -m "Otomatik Güncelleme: $(date)"
             git push
-            echo "Push işlemi tamamlandı."
           fi
