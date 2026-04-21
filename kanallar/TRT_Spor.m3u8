@@ -1,8 +1,0 @@
-#EXTM3U
-#EXTINF:-1 tvg-name="TRT Spor" group-title="TRT",TRT Spor
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36
-#EXTVLCOPT:http-referrer=https://taraftarium1049.xyz/
-#EXT-X-USER-AGENT:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36
-#EXT-X-REFERER:https://taraftarium1049.xyz/
-#EXT-X-ORIGIN:https://taraftarium1049.xyz
-https://3d7.d72577a9dd0ec59.cfd/trtspor/mono.m3u8
