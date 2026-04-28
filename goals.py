@@ -10,7 +10,7 @@ USER_AGENT = "Mozilla/5.0"
 
 def find_working_domain(context):
     print("\n🔍 Çalışan Taraftarium domain aranıyor...")
-    for num in range(1041, 1065):        
+    for num in range(1053, 1075):        
         test_url = f"https://taraftarium{num}.xyz/"
         page = context.new_page()
         try:
